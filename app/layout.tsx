@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Task Management System",
   description: "A beautiful task management system with user CRUD functionality",
-    generator: 'v0.dev'
+    generator: 'Adeoluwa.dev'
 }
 
 export default function RootLayout({

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/card"
 import Button from "@/components/ui/button"
@@ -43,7 +43,6 @@ type FormErrors = {
 
 export default function CreateTaskPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { showToast } = useToast()
   const { user } = useAuth()
 

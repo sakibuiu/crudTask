@@ -16,7 +16,7 @@ export type Session = {
 }
 
 // Secret key for JWT
-const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || "fallback_secret_key_for_development_only")
+const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || "fallback_secret_key_for")
 
 // Create a new session
 export async function createSession(userId: string): Promise<string> {

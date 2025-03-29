@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/card"
 import Button from "@/components/ui/button"
@@ -43,6 +43,7 @@ type FormErrors = {
 
 export default function CreateTaskPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { showToast } = useToast()
   const { user } = useAuth()
 
@@ -56,9 +57,10 @@ export default function CreateTaskPage() {
     description: "",
     status: "TODO",
     priority: "MEDIUM",
-    assigneeId: "",
-    teamId: user ? user.organizationId : "",
+    assigneeId: searchParams.get("userId") || "",
+    teamId: searchParams.get("teamId") || "",
   })
+
   const [errors, setErrors] = useState<FormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -90,7 +92,6 @@ export default function CreateTaskPage() {
       }
 
       const data = await response.json()
-      console.log("Team ", data)
       setTeams(data)
     } catch (err) {
       showToast("Failed to load teams", "error")
@@ -103,6 +104,16 @@ export default function CreateTaskPage() {
     fetchUsers()
     fetchTeams()
   }, [])
+
+  // Add a new useEffect to set the first team ID when teams are loaded
+  useEffect(() => {
+    if (teams.length > 0 && !formData.teamId) {
+      setFormData((prev) => ({
+        ...prev,
+        teamId: teams[0].id,
+      }))
+    }
+  }, [teams])
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
@@ -130,7 +141,6 @@ export default function CreateTaskPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-    console.log("This is form data ", formData)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -243,16 +253,8 @@ export default function CreateTaskPage() {
             />
             {loadingUsers && <p className="text-sm text-gray-500">Loading users...</p>}
 
-            <Select
-              id="teamId"
-              name="teamId"
-              label="Team (Optional)"
-              options={teams.map((team) => ({ value: team.id, label: team.name }))}
-              value={formData.teamId}
-              onChange={handleChange}
-              error={errors.teamId}
-              className="text-black"
-            />
+            {/* Replace the team Select with a hidden input */}
+            <input type="hidden" name="teamId" id="teamId" value={formData.teamId} />
             {loadingTeams && <p className="text-sm text-gray-500">Loading teams...</p>}
           </CardBody>
           <CardFooter>

@@ -34,7 +34,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {toasts.map((toast) => (
-        <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => removeToast(toast.id)} />
+        <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => removeToast(toast.id)}  />
       ))}
     </ToastContext.Provider>
   )

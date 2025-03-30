@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 
-type ToastProps = {
+export type ToastProps = {
   message: string
   type?: "success" | "error" | "info" | "warning"
   duration?: number
   onClose: () => void
+  open?:boolean
+  onOpenChange?: (open:any) => void
 }
 
 export default function Toast({ message, type = "info", duration = 3000, onClose }: ToastProps) {

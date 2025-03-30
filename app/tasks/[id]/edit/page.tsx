@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/card"
 import Button from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { useToast } from "@/contexts/toast-context"
 import { motion } from "framer-motion"
 import { ArrowLeft, ListTodo, User, AlignLeft, Tag } from "lucide-react"
 
-type User = {
+type UserType = {
   id: string
   name: string
   email: string
@@ -34,11 +34,14 @@ type FormErrors = {
   userId?: string
 }
 
-export default function EditTaskPage({ params }: { params: { id: string } }) {
+export default function EditTaskPage() {
+  const params = useParams<{ id: string }>()
+
   const router = useRouter()
   const { showToast } = useToast()
+  const [taskId, setTaskId] = useState<string>(params.id)
 
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<UserType[]>([])
   const [loadingUsers, setLoadingUsers] = useState(true)
   const [loadingTask, setLoadingTask] = useState(true)
 
@@ -52,6 +55,11 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
 
   const [errors, setErrors] = useState<FormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Set taskId when params.id changes
+  useEffect(() => {
+    setTaskId(params.id)
+  }, [params.id])
 
   const fetchUsers = async () => {
     try {
@@ -72,9 +80,11 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
   }
 
   const fetchTask = async () => {
+    if (!taskId) return
+
     try {
       setLoadingTask(true)
-      const response = await fetch(`/api/tasks/${params.id}`)
+      const response = await fetch(`/api/tasks/${taskId}`)
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -100,8 +110,13 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     fetchUsers()
-    fetchTask()
-  }, [params.id])
+  }, [])
+
+  useEffect(() => {
+    if (taskId) {
+      fetchTask()
+    }
+  }, [taskId])
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
@@ -141,7 +156,7 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`/api/tasks/${params.id}`, {
+      const response = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -161,7 +176,7 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
       }
 
       showToast("Task updated successfully", "success")
-      router.push(`/tasks/${params.id}`)
+      router.push(`/tasks/${taskId}`)
     } catch (err) {
       showToast(err instanceof Error ? err.message : "An error occurred", "error")
     } finally {
@@ -185,7 +200,7 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <Link href={`/tasks/${params.id}`} className="mr-4 p-2 rounded-full hover:bg-gray-100 transition-colors">
+        <Link href={`/tasks/${taskId}`} className="mr-4 p-2 rounded-full hover:bg-gray-100 transition-colors">
           <ArrowLeft className="h-5 w-5 text-gray-600" />
         </Link>
         <div>
@@ -364,7 +379,7 @@ export default function EditTaskPage({ params }: { params: { id: string } }) {
             </CardBody>
 
             <CardFooter className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t">
-              <Link href={`/tasks/${params.id}`}>
+              <Link href={`/tasks/${taskId}`}>
                 <Button type="button" variant="ghost">
                   Cancel
                 </Button>

@@ -4,8 +4,7 @@
 import * as React from "react"
 
 import type {
-  ToastActionElement,
-  ToastProps,
+  ToastProps
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
@@ -15,7 +14,7 @@ type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
-  action?: ToastActionElement
+  action?: React.ReactElement
 }
 
 const actionTypes = {
@@ -158,7 +157,7 @@ function toast({ ...props }: Toast) {
       ...props,
       id,
       open: true,
-      onOpenChange: (open) => {
+      onOpenChange: (open:any) => {
         if (!open) dismiss()
       },
     },

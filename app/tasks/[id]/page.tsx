@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/card"
 import Button from "@/components/ui/button"
 import Badge from "@/components/ui/badge"
@@ -37,7 +37,8 @@ type Task = {
   }
 }
 
-export default function TaskDetailPage({ params }: { params: { id: string } }) {
+export default function TaskDetailPage() {
+  const params = useParams<{ id: string }>()
   const router = useRouter()
   const { showToast } = useToast()
   const { user } = useAuth()
@@ -45,35 +46,47 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [taskId, setTaskId] = useState<string>(params.id)
 
-  useEffect(() => {
-    const fetchTask = async () => {
-      try {
-        setLoading(true);
-        const { id } = await params; // Await params before using id
-        const response = await fetch(`/api/tasks/${id}`);
-        console.log(response)
-        if (!response.ok) {
-          if (response.status === 404) throw new Error("Task not found");
-          throw new Error("Failed to fetch task");
+  const fetchTask = async () => {
+    if (!taskId) return
+
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/tasks/${taskId}`)
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("Task not found")
         }
-  
-        const data = await response.json();
-        setTask(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-        showToast("Failed to load task", "error");
-      } finally {
-        setLoading(false);
+        throw new Error("Failed to fetch task")
       }
-    };
-  
-    fetchTask();
-  }, [params]); // Remove direct access to params.id
-  
+
+      const data = await response.json()
+      setTask(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+      showToast("Failed to load task", "error")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Set taskId when params.id changes
+  useEffect(() => {
+    setTaskId(params.id)
+  }, [params.id])
+
+  // Fetch task when taskId changes
+  useEffect(() => {
+    if (taskId) {
+      fetchTask()
+    }
+  }, [taskId])
+
   const handleDelete = async () => {
     try {
-      const response = await fetch(`/api/tasks/${params.id}`, {
+      const response = await fetch(`/api/tasks/${taskId}`, {
         method: "DELETE",
       })
 

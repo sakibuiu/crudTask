@@ -111,7 +111,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         const team = await prisma.team.findFirst({
           where: {
             id: teamId,
-            organizationId: session.user.organizationId,
+            organizationId: session.user.organizationId ?? "",
           },
         });
   

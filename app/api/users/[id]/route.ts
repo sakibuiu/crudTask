@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/auth"
 
 // GET a single user
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{id: string}>  }) {
   try {
-    const id = params.id
-
+    const {id} = await context.params
+  
     const user = await prisma.user.findUnique({
       where: { id },
       select: {
@@ -28,6 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     })
 
     if (!user) {
+      console.log(request) 
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
@@ -39,9 +40,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PATCH update a user
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, context: { params:  Promise<{id: string}>  }) {
   try {
-    const id = params.id
+    const {id} = await context.params
     const body = await request.json()
     const { name, email, password, role } = body
 
@@ -83,9 +84,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 // DELETE a user
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{id: string}> }) {
   try {
-    const id = params.id
+    const {id} = await context.params
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({

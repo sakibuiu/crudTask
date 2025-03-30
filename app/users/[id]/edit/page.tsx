@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardHeader, CardBody, CardFooter } from "@/components/ui/card"
 import Button from "@/components/ui/button"
@@ -26,9 +26,11 @@ type FormErrors = {
   role?: string
 }
 
-export default function EditUserPage({ params }: { params: { id: string } }) {
+export default function EditUserPage() {
+   const params = useParams<{ id: string }>()
   const router = useRouter()
   const { showToast } = useToast()
+  const [userId, setUserId] = useState<string>(params.id)
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -42,10 +44,17 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Set userId when params.id changes
+  useEffect(() => {
+    setUserId(params.id)
+  }, [params.id])
+
   const fetchUser = async () => {
+    if (!userId) return
+
     try {
       setLoading(true)
-      const response = await fetch(`/api/users/${params.id}`)
+      const response = await fetch(`/api/users/${userId}`)
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -70,8 +79,10 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
   }
 
   useEffect(() => {
-    fetchUser()
-  }, [params.id])
+    if (userId) {
+      fetchUser()
+    }
+  }, [userId])
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
@@ -113,13 +124,15 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
     setIsSubmitting(true)
 
     // Only include password if it's not empty
-    const updateData = { ...formData }
+    const updateData: Partial<{ name: string; email: string; password?: string; role: string }> = { ...formData }
+
     if (!updateData.password) {
       delete updateData.password
     }
+    
 
     try {
-      const response = await fetch(`/api/users/${params.id}`, {
+      const response = await fetch(`/api/users/${userId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -133,7 +146,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
       }
 
       showToast("User updated successfully", "success")
-      router.push(`/users/${params.id}`)
+      router.push(`/users/${userId}`)
     } catch (err) {
       showToast(err instanceof Error ? err.message : "An error occurred", "error")
     } finally {
@@ -171,7 +184,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <Link href={`/users/${params.id}`} className="mr-4 p-2 rounded-full hover:bg-gray-100 transition-colors">
+        <Link href={`/users/${userId}`} className="mr-4 p-2 rounded-full hover:bg-gray-100 transition-colors">
           <ArrowLeft className="h-5 w-5 text-gray-600" />
         </Link>
         <div>
@@ -286,7 +299,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
             </CardBody>
 
             <CardFooter className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t">
-              <Link href={`/users/${params.id}`}>
+              <Link href={`/users/${userId}`}>
                 <Button type="button" variant="ghost">
                   Cancel
                 </Button>

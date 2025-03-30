@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Card, CardHeader, CardBody } from "@/components/ui/card"
 import Button from "@/components/ui/button"
 import Badge from "@/components/ui/badge"
@@ -24,18 +24,22 @@ type User = {
   }[]
 }
 
-export default function UserDetailPage({ params }: { params: { id: string } }) {
+export default function UserDetailPage() {
+   const params = useParams<{ id: string }>()
   const router = useRouter()
   const { showToast } = useToast()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [userId, setUserId] = useState<string>(params.id)
 
   const fetchUser = async () => {
+    if (!userId) return
+
     try {
       setLoading(true)
-      const response = await fetch(`/api/users/${params.id}`)
+      const response = await fetch(`/api/users/${userId}`)
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -54,13 +58,21 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
     }
   }
 
+  // Set userId when params.id changes
   useEffect(() => {
-    fetchUser()
+    setUserId(params.id)
   }, [params.id])
+
+  // Fetch user when userId changes
+  useEffect(() => {
+    if (userId) {
+      fetchUser()
+    }
+  }, [userId])
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`/api/users/${params.id}`, {
+      const response = await fetch(`/api/users/${userId}`, {
         method: "DELETE",
       })
 
